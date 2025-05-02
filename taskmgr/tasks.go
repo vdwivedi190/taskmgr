@@ -22,17 +22,17 @@ var StatusStr = map[TaskStatus]string{
 type Task struct {
 	Name   string
 	Desc   string
-	Note   string
+	Notes  []string
 	ID     TaskID
 	Status TaskStatus
 	Tags   []int
 }
 
-func MakeTask(id TaskID, name, desc, note string, tags []int) Task {
+func MakeTask(id TaskID, name, desc string, notes []string, tags []int) Task {
 	return Task{
 		Name:   name,
 		Desc:   desc,
-		Note:   note,
+		Notes:  notes,
 		Status: NotStarted,
 		ID:     id,
 		Tags:   tags,

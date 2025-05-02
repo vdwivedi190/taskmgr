@@ -16,14 +16,14 @@ func initTaskFile() error {
 	}
 
 	// Define the directory and file paths in the user's home directory
-	TaskDir = homeDir + "/.gotaskmgr"
+	TaskDir = homeDir + "/.taskmgr"
 	TaskFile = TaskDir + "/tasks.json"
 
 	// Create the directory if it doesn't exist
 	_, statErr := os.Stat(TaskDir)
 	if os.IsNotExist(statErr) {
 		// Create the directory if it doesn't exist
-		err := os.MkdirAll(TaskDir, 0666)
+		err := os.MkdirAll(TaskDir, 0777)
 		if err != nil {
 			return err
 		}

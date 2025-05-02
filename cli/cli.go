@@ -21,7 +21,10 @@ const (
 
 // Function to display the help message
 func showHelp() {
-	helpstr := `This is a simple CLI-based task manager. Each task has a mandatory non-empty NAME and a STATUS (Not Started, In Progress, Completed, or Deferred). Additionally, each task may have an ALIAS, a DESCRIPTION, and a set of TAG(S). 
+	helpstr := `This is a simple CLI-based task manager. Each task has a mandatory
+non-empty NAME and a STATUS (Not Started, In Progress, Completed,
+or Deferred). Additionally, each task may have a DESCRIPTION and a
+set of NOTES. The task manager prompt supports the following commands:
 
   a, add: 	Add a new task
   e, edit: 	Edit an existing task
@@ -62,12 +65,25 @@ func addTask(taskList []taskmgr.Task, reader *bufio.Reader) []taskmgr.Task {
 	desc, _ := reader.ReadString('\n')
 	desc = strings.TrimSpace(desc[:len(desc)-1]) // Remove the newline character
 
+	var note string
+	noteList := []string{}
+	for {
+		fmt.Print("  Enter an optional task note: ")
+		note, _ = reader.ReadString('\n')
+		note = strings.TrimSpace(note[:len(note)-1]) // Remove the newline character
+		if note == "" {
+			break
+		} else {
+			noteList = append(noteList, note)
+		}
+	}
+
 	// Each task has a unique ID
 	id := genID(taskList)
 
 	// Create the taskmgr.Task object and add it to the task list
 	fmt.Println("  Creating a new task with ID:", id)
-	newTask := taskmgr.MakeTask(id, name, desc, "", []int{})
+	newTask := taskmgr.MakeTask(id, name, desc, noteList, []int{})
 	taskList = append(taskList, newTask)
 	return taskList
 }
@@ -93,7 +109,7 @@ func getID(taskList []taskmgr.Task, reader *bufio.Reader) (taskmgr.TaskID, int, 
 	var exists bool
 
 	for {
-		fmt.Print("  Enter the ID of task to edit (leave empty to quit): ")
+		fmt.Print("  Enter Task ID (leave blank to quit): ")
 		idStr, _ := reader.ReadString('\n')
 		idStr = idStr[:len(idStr)-1] // Remove the newline character
 
@@ -134,18 +150,23 @@ func editTask(taskList []taskmgr.Task, reader *bufio.Reader) {
 		taskList[index].Name = name
 	}
 
-	fmt.Print("  Enter an optional task description (leave empty to retain the old name): ")
+	fmt.Print("  Enter an optional task description (leave empty to retain the old description): ")
 	desc, _ := reader.ReadString('\n')
 	desc = desc[:len(desc)-1] // Remove the newline character
 	if desc != "" {
 		taskList[index].Desc = desc
 	}
 
-	fmt.Print("  Enter an optional task note (leave empty to retain the old name): ")
-	note, _ := reader.ReadString('\n')
-	note = note[:len(note)-1] // Remove the newline character
-	if note != "" {
-		taskList[index].Note = note
+	var note string
+	for {
+		fmt.Print("  Enter an optional task note: ")
+		note, _ = reader.ReadString('\n')
+		note = strings.TrimSpace(note[:len(note)-1]) // Remove the newline character
+		if note == "" {
+			break
+		} else {
+			taskList[index].Notes = append(taskList[index].Notes, note)
+		}
 	}
 }
 
@@ -212,6 +233,25 @@ func rmTask(taskList []taskmgr.Task, reader *bufio.Reader) []taskmgr.Task {
 	return append(taskList[:index], taskList[index+1:]...)
 }
 
+// Function to display a single task
+func displaySingleTask(task taskmgr.Task) {
+	fmt.Println("   Name: ", task.Name)
+	fmt.Println("   Description: ", task.Desc)
+	if len(task.Notes) != 0 {
+		fmt.Print("   Notes: [")
+		for i, note := range task.Notes {
+			if i == len(task.Notes)-1 {
+				fmt.Print("\"" + note + "\"]")
+			} else {
+				fmt.Print("\"" + note + "\", ")
+			}
+		}
+		fmt.Println()
+	}
+	fmt.Println("   Status: ", taskmgr.StatusStr[task.Status])
+	// fmt.Println("   Tags: ", task.Tags)
+}
+
 // Function to delete a task from the list
 func dispTask(taskList []taskmgr.Task, reader *bufio.Reader) {
 	_, index, err := getID(taskList, reader)
@@ -252,17 +292,6 @@ func formatTaskStr(task taskmgr.Task) string {
 	nameStr := FormatStr(task.Name, nameLen, "l")
 	statStr := FormatStr(taskmgr.StatusStr[task.Status], statLen, "l")
 	return idStr + "    " + nameStr + "   " + statStr + "   "
-}
-
-// Function to display a single task
-func displaySingleTask(task taskmgr.Task) {
-	fmt.Println("   Name: ", task.Name)
-	fmt.Println("   Description: ", task.Desc)
-	if task.Note != "" {
-		fmt.Println("   Note: ", task.Note)
-	}
-	fmt.Println("   Status: ", taskmgr.StatusStr[task.Status])
-	// fmt.Println("   Tags: ", task.Tags)
 }
 
 // Function to list all tasks in the task list
@@ -316,23 +345,4 @@ func CLILoop(taskList []taskmgr.Task) []taskmgr.Task {
 			fmt.Println("Unknown command:", input)
 		}
 	}
-}
-
-// Function to get the task list (for testing purposes)
-// This function should be replaced with a call to the storage package
-// to retrieve the task list from a JSON file or database
-func GetTaskList() ([]taskmgr.Task, error) {
-
-	// Initialize the task list
-	taskList := []taskmgr.Task{}
-
-	id := genID(taskList)
-	newTask := taskmgr.MakeTask(id, "Task #1", "", "", []int{})
-	taskList = append(taskList, newTask)
-
-	id = genID(taskList)
-	newTask = taskmgr.MakeTask(id, "Looooooooooooooonger Task", "", "", []int{})
-	taskList = append(taskList, newTask)
-
-	return taskList, nil
 }
