@@ -7,17 +7,18 @@ const (
 	// Task Status Constants
 	NotStarted = iota
 	InProgress
+	Done
 	Deferred
-	Completed
 )
 
 var StatusStr = map[TaskStatus]string{
 	NotStarted: "Not Started",
 	InProgress: "In Progress",
+	Done:       "Done",
 	Deferred:   "Deferred",
-	Completed:  "Completed",
 }
 
+// Tags not implemented yet
 type Task struct {
 	Name   string
 	Desc   string
@@ -28,9 +29,6 @@ type Task struct {
 }
 
 func MakeTask(id TaskID, name, desc, note string, tags []int) Task {
-	// // Generate a unique ID for the task
-	// id := GenerateID()
-
 	return Task{
 		Name:   name,
 		Desc:   desc,
